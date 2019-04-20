@@ -197,8 +197,53 @@ Step9: Open the browser and  http://com.study.pattern:80/swagger-ui.html and hit
        
 <img width="1678" alt="swagger-ui" src="https://user-images.githubusercontent.com/5623861/56437837-792c8500-6313-11e9-8718-2c12b8c4be25.png">
 
+Step10: How to get the Haproxy dashboard
+```
+Run the below command
+docker exec docker-compose-lb-scaling-non-swarm_loadbalancer_1 cat haproxy.cfg
 
-        
-        
+listen stats
+  bind :1936
+  mode http
+  stats enable
+  timeout connect 10s
+  timeout client 1m
+  timeout server 1m
+  stats hide-version
+  stats realm Haproxy\ Statistics
+  stats uri /
+  stats auth stats:stats
+
+
+Find the Listern port :1936
+User name and password : stats/stats
+
+```
+Step 11: Scale the containers 
+
+madhu@Admins-MacBook-Pro:~/dockerfiles/docker-compose-lb-scaling-non-swarm$ docker-compose scale account-service=6
+WARNING: The scale command is deprecated. Use the up command with the --scale flag instead.
+Starting docker-compose-lb-scaling-non-swarm_account-service_1 ... done
+Creating docker-compose-lb-scaling-non-swarm_account-service_2 ... done
+Creating docker-compose-lb-scaling-non-swarm_account-service_3 ... done
+Creating docker-compose-lb-scaling-non-swarm_account-service_4 ... done
+Creating docker-compose-lb-scaling-non-swarm_account-service_5 ... done
+Creating docker-compose-lb-scaling-non-swarm_account-service_6 ... done
+
+Step 12 : Open the browser and invoke the below URL
+
+http://com.study.pattern:1936/Statistics
+
+<img width="1680" alt="HaProxy Dashboard" src="https://user-images.githubusercontent.com/5623861/56452888-904a9180-636a-11e9-8faf-b24b3ec7b5a6.png">
+
+
+
+## Magic behind the generation of Self configuration file
+
+- /etc/var/docker.sock:/etc/var/docker.sock is added in the file(.sock file is Unix domain socket file)
+- Haproxy communicates the docker api
+- Haproxy knows how many linked containers and their with hostnames, so it can create the config by itself.
+
+
  
 
