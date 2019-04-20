@@ -1,0 +1,35 @@
+
+version: '3.3'
+
+
+# Notes
+
+# Ensure that the service we want to scale does not specify the external/host port. 
+#If we specify that port, the service cannot be scaled since all the instances 
+# would try to use the same host port.
+# Here i created the two container
+
+services: 
+  account-service:
+    image: madhukargunda/account-service:1.0
+    container_name: account-service
+    networks: 
+      - back-end
+    ports:
+      - 2222
+
+
+  loadbalancer:
+    image: dockercloud/haproxy
+    ports:
+      - 80:80
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - back-end  
+    links:
+      - account-service
+
+
+networks:
+  back-end:
