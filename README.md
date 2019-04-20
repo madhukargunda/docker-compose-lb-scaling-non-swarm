@@ -113,9 +113,91 @@ requests across the containers using haproxy.
     - Sticky Sessions -
     - Health Check
     
-    
- 
-        
+
+### Layer 4 Loadbalancing example
+
+Step1 : Download the docker-compose.yml file from this project.
+
+Step2 : Invoke the following docker command.
+
+```
+madhu@Admins-MacBook-Pro:~/dockerfiles/docker-compose-lb-scaling-non-swarm$ docker-compose up -d
+Creating network "docker-compose-lb-scaling-non-swarm_back-end" with the default driver
+Creating docker-compose-lb-scaling-non-swarm_account-service_1 ... done
+Creating docker-compose-lb-scaling-non-swarm_loadbalancer_1    ... done
+madhu@Admins-MacBook-Pro:~/dockerfiles/docker-compose-lb-scaling-non-swarm$ 
+
+```
+Step3: By default one container started for each service
+
+Step4 : Execute the docker-compose ps command to verify all containers are running or not.
+
+```
+dockerfiles/docker-compose-lb-scaling-non-swarm$ docker-compose ps
+                        Name                                       Command               State                   Ports                
+--------------------------------------------------------------------------------------------------------------------------------------
+docker-compose-lb-scaling-non-swarm_account-service_1   java -jar account-service.jar    Up      2222/tcp                             
+docker-compose-lb-scaling-non-swarm_loadbalancer_1      /sbin/tini -- dockercloud- ...   Up      1936/tcp, 443/tcp, 0.0.0.0:80->80/tcp
+
+```
+
+Step5 : Execute the below command to check haproxy configuration updated with container information
+        Both the frontend and backend information updated 
+
+```
+docker exec docker-compose-lb-scaling-non-swarm_loadbalancer_1 cat haproxy.cfg
+
+```
+```
+frontend default_port_80
+  bind :80
+  reqadd X-Forwarded-Proto:\ http
+  maxconn 4096
+  default_backend default_service
+backend default_service
+  server docker-compose-lb-scaling-non-swarm_account-service_1 docker-compose-lb-scaling-non-swarm_account-service_1:2222 check inter 2000 rise 2 fall 3madhu@Admins-MacBook-Pro:~/dock
+  
+```
+
+Step6 : Scale the account service containers.
+
+```
+madhu@Admins-MacBook-Pro:~/dockerfiles/docker-compose-lb-scaling-non-swarm$ docker-compose scale account-service=3
+WARNING: The scale command is deprecated. Use the up command with the --scale flag instead.
+Starting docker-compose-lb-scaling-non-swarm_account-service_1 ... done
+Creating docker-compose-lb-scaling-non-swarm_account-service_2 ... done
+Creating docker-compose-lb-scaling-non-swarm_account-service_3 ... done
+madhu@Admins-MacBook-Pro:~/dockerfiles/docker-compose-lb-scaling-non-swarm$ 
+
+```
+Step7 : Execute the below command to check haproxy configuration updated with container information
+        Both the frontend and backend information updated .
+
+```
+docker exec docker-compose-lb-scaling-non-swarm_loadbalancer_1 cat haproxy.cfg
+
+frontend default_port_80
+  bind :80
+  reqadd X-Forwarded-Proto:\ http
+  maxconn 4096
+  default_backend default_service
+backend default_service
+  server docker-compose-lb-scaling-non-swarm_account-service_1 docker-compose-lb-scaling-non-swarm_account-service_1:2222 check inter 2000 rise 2 fall 3
+  server docker-compose-lb-scaling-non-swarm_account-service_2 docker-compose-lb-scaling-non-swarm_account-service_2:2222 check inter 2000 rise 2 fall 3
+  server docker-compose-lb-scaling-non-swarm_account-service_3 docker-compose-lb-scaling-non-swarm_account-service_3:2222 check inter 2000 rise 2 fall 3
+  
+```
+Step8: Open the another window
+
+```
+docker-compose logs -f
+```
+Step9: Open the browser and  http://com.study.pattern:80/swagger-ui.html and hit any of the REST API.
+       Verify the docker-compose logs each time request routed to one service.
+       
+<img width="1678" alt="swagger-ui" src="https://user-images.githubusercontent.com/5623861/56437837-792c8500-6313-11e9-8718-2c12b8c4be25.png">
+
+
         
         
  
