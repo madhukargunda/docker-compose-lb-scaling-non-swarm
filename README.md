@@ -8,6 +8,11 @@ requests across the containers using haproxy.
 - Loadbalancing the containers having the same ports.
 
 
+![docker-haproxy-multiple container-single-host](https://user-images.githubusercontent.com/5623861/56471598-e6acf280-6486-11e9-83f4-aaca4a99f600.jpg)
+
+
+
+
 ### HAPROXY
 
 - Haproxy is offen called as a High Availability proxy .
